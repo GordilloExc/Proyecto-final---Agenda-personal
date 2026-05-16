@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light" data-color="azul" data-fuente="arial">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Personal</title>
+    <style>
+        :root {
+            --color-primario: #2c3e50;
+            --color-fondo: #f0f2f5;
+            --color-card: white;
+            --color-texto: #333;
+            --color-texto-secundario: #666;
+            --color-borde: #ddd;
+        }
+        [data-theme="dark"] {
+            --color-primario: #1a1a2e;
+            --color-fondo: #1a1a2e;
+            --color-card: #2d2d3f;
+            --color-texto: #f0f0f0;
+            --color-texto-secundario: #b0b0c0;
+            --color-borde: #555;
+        }
+        [data-color="azul"] { --color-header: #2c3e50; }
+        [data-color="verde"] { --color-header: #1a6b3c; }
+        [data-color="morado"] { --color-header: #6c3483; }
+        [data-color="rojo"] { --color-header: #922b21; }
+        [data-color="naranja"] { --color-header: #d35400; }
+
+        [data-fuente="arial"] { font-family: Arial, sans-serif; }
+        [data-fuente="georgia"] { font-family: Georgia, serif; }
+        [data-fuente="mono"] { font-family: 'Courier New', monospace; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+        body { background: var(--color-fondo); color: var(--color-texto); }
+
+        header {
+            background: var(--color-header, #2c3e50);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        header h1 { font-size: 28px; }
+        header p { font-size: 14px; opacity: 0.8; margin-top: 5px; }
+
+        .btn-config {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .btn-config:hover { background: rgba(255,255,255,0.35); }
+
+        .panel-config {
+            display: none;
+            background: var(--color-card);
+            border: 1px solid var(--color-borde);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 900px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .panel-config h3 { margin-bottom: 20px; color: var(--color-texto); font-size: 18px; }
+        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .config-grupo label { display: block; font-size: 13px; color: var(--color-texto-secundario); margin-bottom: 8px; font-weight: bold; }
+        .colores { display: flex; gap: 10px; flex-wrap: wrap; }
+        .color-btn {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+        }
+        .color-btn.activo { border-color: var(--color-texto); }
+        .toggle-switch { display: flex; align-items: center; gap: 10px; }
+        .switch { position: relative; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #ccc; border-radius: 26px;
+            transition: .4s;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 20px; width: 20px;
+            left: 3px; bottom: 3px;
+            background: white; border-radius: 50%;
+            transition: .4s;
+        }
+        input:checked + .slider { background: #2ecc71; }
+        input:checked + .slider:before { transform: translateX(24px); }
+        select.config-select {
+            width: 100%; padding: 8px;
+            border: 1px solid var(--color-borde);
+            border-radius: 6px;
+            background: var(--color-card);
+            color: var(--color-texto);
+            font-size: 14px;
+        }
+
+        .contenedor { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .formulario {
+            background: var(--color-card);
+            padding: 25px; border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--color-borde);
+        }
+        .formulario h2 { color: var(--color-texto); margin-bottom: 15px; }
+
+        label { color: var(--color-texto-secundario); font-size: 14px; }
+
+        input, select, textarea {
+            width: 100%; padding: 10px;
+            margin: 6px 0 14px 0;
+            border: 1px solid var(--color-borde);
+            border-radius: 6px;
+            background: var(--color-card);
+            color: var(--color-texto);
+            font-size: 14px;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--color-header, #2c3e50);
+            box-shadow: 0 0 0 2px rgba(44,62,80,0.15);
+        }
+        button[type="submit"] {
+            background: var(--color-header, #2c3e50);
+            color: white; padding: 12px 25px;
+            border: none; border-radius: 6px;
+            cursor: pointer; font-size: 15px;
+            margin-top: 5px;
+        }
+        button[type="submit"]:hover { opacity: 0.85; }
+        .campos-extra { display: none; }
+
+        .barra-eventos {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 15px;
+        }
+        .barra-eventos h2 { color: var(--color-texto); }
+        .ordenar-select {
+            padding: 8px 12px;
+            border: 1px solid var(--color-borde);
+            border-radius: 6px;
+            background: var(--color-card);
+            color: var(--color-texto);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .evento-card {
+            background: var(--color-card);
+            padding: 20px; border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 5px solid #2c3e50;
+            border-top: 1px solid var(--color-borde);
+            border-right: 1px solid var(--color-borde);
+            border-bottom: 1px solid var(--color-borde);
+        }
+        .cita { border-left-color: #e74c3c; }
+        .reunion { border-left-color: #3498db; }
+        .recordatorio { border-left-color: #2ecc71; }
+        .badge {
+            display: inline-block; padding: 4px 12px;
+            border-radius: 20px; font-size: 12px;
+            font-weight: bold; color: white; margin-bottom: 8px;
+        }
+        .badge-cita { background: #e74c3c; }
+        .badge-reunion { background: #3498db; }
+        .badge-recordatorio { background: #2ecc71; }
+        .evento-card h3 { margin: 5px 0; color: var(--color-texto); font-size: 18px; }
+        .evento-card .fecha { color: var(--color-texto-secundario); margin: 5px 0; font-size: 14px; }
+        .evento-card .detalle { color: var(--color-texto-secundario); margin: 5px 0; font-size: 14px; }
+        .eliminar {
+            background: #e74c3c; padding: 8px 15px;
+            font-size: 13px; text-decoration: none;
+            color: white; border-radius: 6px;
+            display: inline-block; margin-top: 10px;
+        }
+        .eliminar:hover { background: #c0392b; }
+        .vacio {
+            text-align: center; color: var(--color-texto-secundario);
+            padding: 40px; background: var(--color-card);
+            border-radius: 10px; border: 1px solid var(--color-borde);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Agenda Personal</h1>
+    <p>Gestiona tus citas, reuniones y recordatorios</p>
+    <button class="btn-config" onclick="toggleConfig()" title="Configuración">⚙️</button>
+</header>
+
+<div class="panel-config" id="panel-config">
+    <h3>⚙️ Configuración</h3>
+    <div class="config-grid">
+
+        <div class="config-grupo">
+            <label>Modo oscuro</label>
+            <div class="toggle-switch">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-dark" onchange="cambiarModo()">
+                    <span class="slider"></span>
+                </label>
+                <span id="label-modo">Claro</span>
+            </div>
+        </div>
+
+        <div class="config-grupo">
+            <label>Color del tema</label>
+            <div class="colores">
+                <div class="color-btn activo" style="background:#2c3e50" onclick="cambiarColor('azul', this)" title="azul"></div>
+                <div class="color-btn" style="background:#1a6b3c" onclick="cambiarColor('verde', this)" title="verde"></div>
+                <div class="color-btn" style="background:#6c3483" onclick="cambiarColor('morado', this)" title="morado"></div>
+                <div class="color-btn" style="background:#922b21" onclick="cambiarColor('rojo', this)" title="rojo"></div>
+                <div class="color-btn" style="background:#d35400" onclick="cambiarColor('naranja', this)" title="naranja"></div>
+            </div>
+        </div>
+
+        <div class="config-grupo">
+            <label>Fuente</label>
+            <select class="config-select" id="select-fuente" onchange="cambiarFuente(this.value)">
+                <option value="arial">Arial (moderna)</option>
+                <option value="georgia">Georgia (clásica)</option>
+                <option value="mono">Monospace (técnica)</option>
+            </select>
+        </div>
+
+    </div>
+</div>
+
+<div class="contenedor">
+    <div class="formulario">
+        <h2>Agregar nuevo evento</h2>
+        <form action="/agregar" method="POST">
+            <label>Tipo de evento:</label>
+            <select name="tipo" id="tipo" onchange="mostrarCampos()">
+                <option value="Cita">Cita</option>
+                <option value="Reunion">Reunión</option>
+                <option value="Recordatorio">Recordatorio</option>
+            </select>
+
+            <label>Título:</label>
+            <input type="text" name="titulo" placeholder="Ej: Cita con el médico" required>
+
+            <label>Fecha:</label>
+            <input type="datetime-local" name="fecha" required>
+
+            <label>Descripción:</label>
+            <textarea name="descripcion" rows="2" placeholder="Describe el evento..." required></textarea>
+
+            <div id="campos-cita" class="campos-extra">
+                <label>Lugar:</label>
+                <input type="text" name="lugar" placeholder="Ej: Clínica del Norte">
+                <label>Doctor:</label>
+                <input type="text" name="doctor" placeholder="Ej: Dr. García">
+            </div>
+            <div id="campos-reunion" class="campos-extra">
+                <label>Participantes:</label>
+                <input type="text" name="participantes" placeholder="Ej: Juan, María, Carlos">
+            </div>
+            <div id="campos-recordatorio" class="campos-extra">
+                <label>Persona:</label>
+                <input type="text" name="persona" placeholder="Ej: Mamá">
+            </div>
+
+            <button type="submit">Agregar evento</button>
+        </form>
+    </div>
+
+    <div class="barra-eventos">
+        <h2>Mis eventos</h2>
+        <select class="ordenar-select" id="ordenar" onchange="ordenarEventos()">
+            <option value="reciente">Más reciente primero</option>
+            <option value="antiguo">Más antiguo primero</option>
+            <option value="tipo">Por tipo</option>
+        </select>
+    </div>
+
+    <div id="lista-eventos">
+        {% if eventos %}
+            {% for evento in eventos %}
+            <div class="evento-card {{ evento.tipo | lower }}" data-fecha="{{ evento.fecha }}" data-tipo="{{ evento.tipo }}">
+                <span class="badge badge-{{ evento.tipo | lower }}">{{ evento.tipo }}</span>
+                <h3>{{ evento.titulo }}</h3>
+                <p class="fecha">📅 {{ evento.fecha }}</p>
+                <p class="detalle">{{ evento.descripcion }}</p>
+                {% if evento.tipo == "Cita" %}
+                    <p class="detalle">📍 {{ evento.lugar }} &nbsp; 👨‍⚕️ {{ evento.doctor }}</p>
+                {% elif evento.tipo == "Reunion" %}
+                    <p class="detalle">👥 Participantes: {{ evento.participantes }}</p>
+                {% elif evento.tipo == "Recordatorio" %}
+                    <p class="detalle">👤 Para: {{ evento.persona }}</p>
+                {% endif %}
+                <a href="/eliminar/{{ evento.id }}" class="eliminar">Eliminar</a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="vacio">
+                <p>No hay eventos aún. ¡Agrega tu primer evento!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function toggleConfig() {
+        const panel = document.getElementById("panel-config");
+        panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    function cambiarModo() {
+        const dark = document.getElementById("toggle-dark").checked;
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+        document.getElementById("label-modo").textContent = dark ? "Oscuro" : "Claro";
+        localStorage.setItem("tema", dark ? "dark" : "light");
+    }
+
+    function cambiarColor(color, btn) {
+        document.documentElement.setAttribute("data-color", color);
+        document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("activo"));
+        btn.classList.add("activo");
+        localStorage.setItem("color", color);
+    }
+
+    function cambiarFuente(fuente) {
+        document.documentElement.setAttribute("data-fuente", fuente);
+        localStorage.setItem("fuente", fuente);
+    }
+
+    function ordenarEventos() {
+        const criterio = document.getElementById("ordenar").value;
+        const lista = document.getElementById("lista-eventos");
+        const cards = Array.from(lista.querySelectorAll(".evento-card"));
+
+        cards.sort((a, b) => {
+            if (criterio === "tipo") {
+                return a.dataset.tipo.localeCompare(b.dataset.tipo);
+            }
+            const fa = a.dataset.fecha;
+            const fb = b.dataset.fecha;
+            return criterio === "reciente" ? fb.localeCompare(fa) : fa.localeCompare(fb);
+        });
+
+        cards.forEach(c => lista.appendChild(c));
+    }
+
+    function mostrarCampos() {
+        document.getElementById("campos-cita").style.display = "none";
+        document.getElementById("campos-reunion").style.display = "none";
+        document.getElementById("campos-recordatorio").style.display = "none";
+        const tipo = document.getElementById("tipo").value;
+        if (tipo === "Cita") document.getElementById("campos-cita").style.display = "block";
+        else if (tipo === "Reunion") document.getElementById("campos-reunion").style.display = "block";
+        else document.getElementById("campos-recordatorio").style.display = "block";
+    }
+
+    window.onload = function() {
+        const tema = localStorage.getItem("tema");
+        const color = localStorage.getItem("color");
+        const fuente = localStorage.getItem("fuente");
+
+        if (tema === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+            document.getElementById("toggle-dark").checked = true;
+            document.getElementById("label-modo").textContent = "Oscuro";
+        }
+        if (color) {
+            document.documentElement.setAttribute("data-color", color);
+            document.querySelectorAll(".color-btn").forEach(b => {
+                if (b.title === color) b.classList.add("activo");
+                else b.classList.remove("activo");
+            });
+        }
+        if (fuente) {
+            document.documentElement.setAttribute("data-fuente", fuente);
+            document.getElementById("select-fuente").value = fuente;
+        }
+        mostrarCampos();
+    }
+</script>
+
+</body>
+</html>
